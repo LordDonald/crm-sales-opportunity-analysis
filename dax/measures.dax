@@ -1,0 +1,367 @@
+// CRM Sales Opportunity Analysis
+// Exact DAX measure definitions exported from the final Power BI model.
+// Source table: '_Measures'
+// Generated EVALUATE/SUMMARIZECOLUMNS output query removed for repository readability.
+// Measure expressions below are preserved from the model export.
+
+DEFINE
+    MEASURE '_Measures'[Total Opportunities] = CALCULATE(
+    DISTINCTCOUNT(fact_sales_pipeline[opportunity_id]),
+    REMOVEFILTERS(dim_date)
+)
+    MEASURE '_Measures'[Prospecting Opportunities] = CALCULATE(
+    DISTINCTCOUNT(fact_sales_pipeline[opportunity_id]),
+    fact_sales_pipeline[deal_stage] = "Prospecting",
+    REMOVEFILTERS(dim_date)
+)
+    MEASURE '_Measures'[Engaging Opportunities] = CALCULATE(
+    DISTINCTCOUNT(fact_sales_pipeline[opportunity_id]),
+    fact_sales_pipeline[deal_stage] = "Engaging",
+    REMOVEFILTERS(dim_date)
+)
+    MEASURE '_Measures'[Open Opportunities] = [Prospecting Opportunities] + [Engaging Opportunities]
+    MEASURE '_Measures'[Won Opportunities] = CALCULATE(
+    DISTINCTCOUNT(fact_sales_pipeline[opportunity_id]),
+    fact_sales_pipeline[deal_stage] = "Won"
+)
+    MEASURE '_Measures'[Lost Opportunities] = CALCULATE(
+    DISTINCTCOUNT(fact_sales_pipeline[opportunity_id]),
+    fact_sales_pipeline[deal_stage] = "Lost"
+)
+    MEASURE '_Measures'[Closed Opportunities] = [Won Opportunities] + [Lost Opportunities]
+    MEASURE '_Measures'[Closed-Deal Win Rate] = DIVIDE(
+    [Won Opportunities],
+    [Closed Opportunities],
+    0
+)
+    MEASURE '_Measures'[Closed-Deal Loss Rate] = DIVIDE(
+    [Lost Opportunities],
+    [Closed Opportunities],
+    0
+)
+    MEASURE '_Measures'[Open Pipeline Share] = DIVIDE(
+    [Open Opportunities],
+    [Total Opportunities],
+    0
+)
+    MEASURE '_Measures'[Won Revenue] = CALCULATE(
+    SUM(fact_sales_pipeline[close_value]),
+    fact_sales_pipeline[deal_stage] = "Won"
+)
+    MEASURE '_Measures'[Average Won Deal Value] = DIVIDE(
+    [Won Revenue],
+    [Won Opportunities],
+    0
+)
+    MEASURE '_Measures'[Average Sales Cycle Days] = AVERAGE(fact_sales_pipeline[sales_cycle_days])
+    MEASURE '_Measures'[Median Sales Cycle Days] = MEDIAN(fact_sales_pipeline[sales_cycle_days])
+    MEASURE '_Measures'[Won Average Sales Cycle Days] = CALCULATE(
+    [Average Sales Cycle Days],
+    fact_sales_pipeline[deal_stage] = "Won"
+)
+    MEASURE '_Measures'[Lost Average Sales Cycle Days] = CALCULATE(
+    [Average Sales Cycle Days],
+    fact_sales_pipeline[deal_stage] = "Lost"
+)
+    MEASURE '_Measures'[Won Median Sales Cycle Days] = CALCULATE(
+    [Median Sales Cycle Days],
+    fact_sales_pipeline[deal_stage] = "Won"
+)
+    MEASURE '_Measures'[Lost Median Sales Cycle Days] = CALCULATE(
+    [Median Sales Cycle Days],
+    fact_sales_pipeline[deal_stage] = "Lost"
+)
+    MEASURE '_Measures'[Revenue per Opportunity] = DIVIDE(
+    CALCULATE(
+        [Won Revenue],
+        REMOVEFILTERS(dim_date)
+    ),
+    [Total Opportunities],
+    0
+)
+    MEASURE '_Measures'[Sales Agents] = DISTINCTCOUNT(dim_sales_teams[sales_agent])
+    MEASURE '_Measures'[Agents with Opportunities] = COUNTROWS(
+    FILTER(
+        VALUES(dim_sales_teams[sales_agent]),
+        CALCULATE([Total Opportunities]) > 0
+    )
+)
+    MEASURE '_Measures'[Agents with No Opportunities] = [Sales Agents] - [Agents with Opportunities]
+    MEASURE '_Measures'[Revenue per Agent] = DIVIDE(
+    [Won Revenue],
+    [Sales Agents],
+    0
+)
+    MEASURE '_Measures'[Opportunities per Agent] = DIVIDE(
+    [Total Opportunities],
+    [Sales Agents],
+    0
+)
+    MEASURE '_Measures'[Account Count] = DISTINCTCOUNT(dim_accounts[account])
+    MEASURE '_Measures'[Revenue per Account] = DIVIDE(
+    CALCULATE(
+        [Won Revenue],
+        REMOVEFILTERS(dim_date)
+    ),
+    [Account Count],
+    0
+)
+    MEASURE '_Measures'[Opportunities per Account] = DIVIDE(
+    [Assigned Opportunities],
+    [Account Count],
+    0
+)
+    MEASURE '_Measures'[Assigned Opportunities] = CALCULATE(
+    DISTINCTCOUNT(fact_sales_pipeline[opportunity_id]),
+    fact_sales_pipeline[account] <> BLANK(),
+    REMOVEFILTERS(dim_date)
+)
+    MEASURE '_Measures'[Engaging Opportunities by Engagement Date] = CALCULATE(
+    DISTINCTCOUNT(fact_sales_pipeline[opportunity_id]),
+    fact_sales_pipeline[deal_stage] = "Engaging",
+    USERELATIONSHIP(
+        dim_date[Date],
+        fact_sales_pipeline[engage_date]
+    )
+)
+    MEASURE '_Measures'[Lost Opportunities by Engagement Date] = CALCULATE(
+    DISTINCTCOUNT(fact_sales_pipeline[opportunity_id]),
+    fact_sales_pipeline[deal_stage] = "Lost",
+    USERELATIONSHIP(
+        dim_date[Date],
+        fact_sales_pipeline[engage_date]
+    )
+)
+    MEASURE '_Measures'[Won Opportunities by Engagement Date] = CALCULATE(
+    DISTINCTCOUNT(fact_sales_pipeline[opportunity_id]),
+    fact_sales_pipeline[deal_stage] = "Won",
+    USERELATIONSHIP(
+        dim_date[Date],
+        fact_sales_pipeline[engage_date]
+    )
+)
+    MEASURE '_Measures'[Closed Opportunities by Engagement Date] = [Won Opportunities by Engagement Date]
+    + [Lost Opportunities by Engagement Date]
+    MEASURE '_Measures'[Engagement Cohort Win Rate] = DIVIDE(
+    [Won Opportunities by Engagement Date],
+    [Closed Opportunities by Engagement Date],
+    0
+)
+    MEASURE '_Measures'[Won Revenue by Engagement Date] = CALCULATE(
+    SUM(fact_sales_pipeline[close_value]),
+    fact_sales_pipeline[deal_stage] = "Won",
+    USERELATIONSHIP(
+        dim_date[Date],
+        fact_sales_pipeline[engage_date]
+    )
+)
+    MEASURE '_Measures'[Average Sales Cycle by Engagement Date] = CALCULATE(
+    [Average Sales Cycle Days],
+    USERELATIONSHIP(
+        dim_date[Date],
+        fact_sales_pipeline[engage_date]
+    )
+)
+    MEASURE '_Measures'[Opportunities Reaching Engaging] = CALCULATE(
+    DISTINCTCOUNT(fact_sales_pipeline[opportunity_id]),
+    fact_sales_pipeline[engage_date] <> BLANK(),
+    USERELATIONSHIP(
+        dim_date[Date],
+        fact_sales_pipeline[engage_date]
+    )
+)
+    MEASURE '_Measures'[Unassigned Open Opportunities] = CALCULATE(
+    DISTINCTCOUNT(fact_sales_pipeline[opportunity_id]),
+    fact_sales_pipeline[account] = BLANK(),
+    fact_sales_pipeline[deal_stage] IN {
+        "Prospecting",
+        "Engaging"
+    },
+    REMOVEFILTERS(dim_date),
+    REMOVEFILTERS(dim_accounts)
+)
+    MEASURE '_Measures'[Revenue Leader Name] = VAR TopAgent =
+    TOPN(
+        1,
+        FILTER(
+            VALUES(dim_sales_teams[sales_agent]),
+            [Total Opportunities] > 0
+        ),
+        [Won Revenue], DESC,
+        dim_sales_teams[sales_agent], ASC
+    )
+RETURN
+    CONCATENATEX(
+        TopAgent,
+        dim_sales_teams[sales_agent],
+        ""
+    )
+    MEASURE '_Measures'[Revenue Leader Value] = MAXX(
+    TOPN(
+        1,
+        FILTER(
+            VALUES(dim_sales_teams[sales_agent]),
+            [Total Opportunities] > 0
+        ),
+        [Won Revenue], DESC,
+        dim_sales_teams[sales_agent], ASC
+    ),
+    [Won Revenue]
+)
+    MEASURE '_Measures'[Win Rate Leader Name] = VAR TopAgent =
+    TOPN(
+        1,
+        FILTER(
+            VALUES(dim_sales_teams[sales_agent]),
+            [Closed Opportunities] >= 50
+        ),
+        [Closed-Deal Win Rate], DESC,
+        dim_sales_teams[sales_agent], ASC
+    )
+RETURN
+    CONCATENATEX(
+        TopAgent,
+        dim_sales_teams[sales_agent],
+        ""
+    )
+    MEASURE '_Measures'[Win Rate Leader Value] = MAXX(
+    TOPN(
+        1,
+        FILTER(
+            VALUES(dim_sales_teams[sales_agent]),
+            [Closed Opportunities] >= 50
+        ),
+        [Closed-Deal Win Rate], DESC,
+        dim_sales_teams[sales_agent], ASC
+    ),
+    [Closed-Deal Win Rate]
+)
+    MEASURE '_Measures'[Deal Value Leader Name] = VAR TopAgent =
+    TOPN(
+        1,
+        FILTER(
+            VALUES(dim_sales_teams[sales_agent]),
+            [Won Opportunities] > 0
+        ),
+        [Average Won Deal Value], DESC,
+        dim_sales_teams[sales_agent], ASC
+    )
+RETURN
+    CONCATENATEX(
+        TopAgent,
+        dim_sales_teams[sales_agent],
+        ""
+    )
+    MEASURE '_Measures'[Deal Value Leader Value] = MAXX(
+    TOPN(
+        1,
+        FILTER(
+            VALUES(dim_sales_teams[sales_agent]),
+            [Won Opportunities] > 0
+        ),
+        [Average Won Deal Value], DESC,
+        dim_sales_teams[sales_agent], ASC
+    ),
+    [Average Won Deal Value]
+)
+    MEASURE '_Measures'[Efficiency Leader Name] = VAR TopAgent =
+    TOPN(
+        1,
+        FILTER(
+            VALUES(dim_sales_teams[sales_agent]),
+            [Total Opportunities] > 0
+        ),
+        [Revenue per Opportunity], DESC,
+        dim_sales_teams[sales_agent], ASC
+    )
+RETURN
+    CONCATENATEX(
+        TopAgent,
+        dim_sales_teams[sales_agent],
+        ""
+    )
+    MEASURE '_Measures'[Efficiency Leader Value] = MAXX(
+    TOPN(
+        1,
+        FILTER(
+            VALUES(dim_sales_teams[sales_agent]),
+            [Total Opportunities] > 0
+        ),
+        [Revenue per Opportunity], DESC,
+        dim_sales_teams[sales_agent], ASC
+    ),
+    [Revenue per Opportunity]
+)
+    MEASURE '_Measures'[Largest Account Revenue Share] = VAR AccountRevenue =
+    ADDCOLUMNS(
+        ALLSELECTED(dim_accounts[account]),
+        "@Revenue", CALCULATE([Won Revenue])
+    )
+VAR LargestRevenue =
+    MAXX(
+        AccountRevenue,
+        [@Revenue]
+    )
+VAR TotalRevenue =
+    CALCULATE(
+        [Won Revenue],
+        ALLSELECTED(dim_accounts[account])
+    )
+RETURN
+    DIVIDE(
+        LargestRevenue,
+        TotalRevenue,
+        0
+    )
+    MEASURE '_Measures'[Top 5 Account Revenue Share] = VAR AccountRevenue =
+    ADDCOLUMNS(
+        ALLSELECTED(dim_accounts[account]),
+        "@Revenue", CALCULATE([Won Revenue])
+    )
+VAR TopRevenue =
+    SUMX(
+        TOPN(
+            5,
+            AccountRevenue,
+            [@Revenue], DESC,
+            dim_accounts[account], ASC
+        ),
+        [@Revenue]
+    )
+VAR TotalRevenue =
+    CALCULATE(
+        [Won Revenue],
+        ALLSELECTED(dim_accounts[account])
+    )
+RETURN
+    DIVIDE(
+        TopRevenue,
+        TotalRevenue,
+        0
+    )
+    MEASURE '_Measures'[Top 10 Account Revenue Share] = VAR AccountRevenue =
+    ADDCOLUMNS(
+        ALLSELECTED(dim_accounts[account]),
+        "@Revenue", CALCULATE([Won Revenue])
+    )
+VAR TopRevenue =
+    SUMX(
+        TOPN(
+            10,
+            AccountRevenue,
+            [@Revenue], DESC,
+            dim_accounts[account], ASC
+        ),
+        [@Revenue]
+    )
+VAR TotalRevenue =
+    CALCULATE(
+        [Won Revenue],
+        ALLSELECTED(dim_accounts[account])
+    )
+RETURN
+    DIVIDE(
+        TopRevenue,
+        TotalRevenue,
+        0
+    )
